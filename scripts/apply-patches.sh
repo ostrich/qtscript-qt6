@@ -8,8 +8,8 @@
 
 set -euo pipefail
 
-base_branch="5.15.19"
 repository="https://invent.kde.org/qt/qt/qtscript.git"
+source_revision="bcd7cae6215df8f1c8b45a338f3327da51edeaff"
 
 source_dir=""
 include_tests=0
@@ -58,7 +58,10 @@ if [[ ! -e "$source_dir/.git" ]]; then
         mkdir -p "$(dirname "$source_dir")"
     fi
 
-    git clone --depth 1 --branch "$base_branch" --single-branch "$repository" "$source_dir"
+    git init --quiet "$source_dir"
+    git -C "$source_dir" remote add origin "$repository"
+    git -C "$source_dir" fetch --quiet --depth 1 origin "$source_revision"
+    git -C "$source_dir" checkout --quiet --detach FETCH_HEAD
 fi
 
 if [[ -d "$source_dir/.git/rebase-apply" ]]; then
@@ -68,6 +71,11 @@ fi
 
 if [[ -n "$(git -C "$source_dir" status --porcelain)" ]]; then
     echo "The QtScript source tree has uncommitted changes: $source_dir" >&2
+    exit 1
+fi
+
+if ! git -C "$source_dir" merge-base --is-ancestor "$source_revision" HEAD; then
+    echo "SourceDir is not based on the pinned KDE QtScript revision: $source_revision" >&2
     exit 1
 fi
 

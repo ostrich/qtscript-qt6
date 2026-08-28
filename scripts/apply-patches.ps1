@@ -32,7 +32,7 @@ function Invoke-Native {
     }
 }
 
-$baseBranch = '5.15.19'
+$sourceRevision = 'bcd7cae6215df8f1c8b45a338f3327da51edeaff'
 $repositoryRoot = Split-Path $PSScriptRoot -Parent
 $SourceDir = [System.IO.Path]::GetFullPath($SourceDir)
 
@@ -53,11 +53,17 @@ if (-not (Test-Path -LiteralPath (Join-Path $SourceDir '.git'))) {
     # Merge stderr so healthy progress chatter cannot terminate the run:
     # Windows PowerShell 5.1 treats every native stderr line as an error
     # under $ErrorActionPreference = 'Stop'; pwsh 7 does not.
-    $cloneOutput = Invoke-Native git clone --depth 1 --branch $baseBranch --single-branch $Repository $SourceDir
+    $cloneOutput = Invoke-Native git init --quiet $SourceDir
     if ($LASTEXITCODE -ne 0) {
         Write-Host $cloneOutput
-        throw "Unable to clone KDE QtScript from $Repository"
+        throw "Unable to initialize KDE QtScript work tree at $SourceDir"
     }
+    Invoke-Native git -C $SourceDir remote add origin $Repository | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Unable to add KDE QtScript remote: $Repository" }
+    Invoke-Native git -C $SourceDir fetch --quiet --depth 1 origin $sourceRevision | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Unable to fetch KDE QtScript revision $sourceRevision" }
+    Invoke-Native git -C $SourceDir checkout --quiet --detach FETCH_HEAD | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Unable to check out KDE QtScript revision $sourceRevision" }
 }
 
 if (Test-Path -LiteralPath (Join-Path $SourceDir '.git\rebase-apply')) {
@@ -70,6 +76,11 @@ if ($LASTEXITCODE -ne 0) {
 }
 if ($dirty) {
     throw "The QtScript source tree has uncommitted changes: $SourceDir"
+}
+
+Invoke-Native git -C $SourceDir merge-base --is-ancestor $sourceRevision HEAD | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    throw "SourceDir is not based on the pinned KDE QtScript revision: $sourceRevision"
 }
 
 function Apply-Patches {

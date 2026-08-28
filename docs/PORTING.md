@@ -4,12 +4,17 @@
 
 - Repository: `https://invent.kde.org/qt/qt/qtscript.git`
 - Release branch: `5.15.19`
+- Pinned commit: `bcd7cae6215df8f1c8b45a338f3327da51edeaff`
 
 The repository stores patches, not a snapshot of the upstream sources. The
-Windows and Linux scripts clone the QtScript release, copy the Qt 6 CMake
+Windows and Linux scripts fetch the exact QtScript commit above, copy the Qt 6 CMake
 entry point from `cmake/`, apply the files in `patches/` in lexical order,
 and optionally apply the selected test changes in `patches/optional/tests`
 with `-IncludePortedTests`.
+
+Update the source pin only in a dedicated commit after confirming that the new
+commit belongs to the intended KDE release branch and that the complete CI
+matrix passes with the unchanged patch series.
 
 The scripts reuse an existing clean source directory that has already been
 patched. Delete that directory under `.work/` before applying a changed patch
