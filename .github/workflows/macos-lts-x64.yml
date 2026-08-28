@@ -1,4 +1,4 @@
-name: Linux Qt 6.8 LTS
+name: macOS Intel Qt 6.8 LTS
 
 on:
   push:
@@ -11,17 +11,17 @@ permissions:
   contents: read
 
 env:
-  QT_VERSION: '6.8.3'           # Qt version installed and built against
-  QT_ARTIFACT_ID: 'linux-gcc'   # artifact name platform-toolchain segment
+  QT_VERSION: '6.8.3'
+  QT_ARTIFACT_ID: 'macos-x64'
 
 concurrency:
-  group: linux-lts-${{ github.event.pull_request.head.repo.full_name || github.repository }}-${{ github.head_ref || github.ref_name }}
+  group: macos-x64-${{ github.event.pull_request.head.repo.full_name || github.repository }}-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
   build:
-    name: Qt 6.8 LTS GCC 64-bit (${{ matrix.configuration }})
-    runs-on: ubuntu-22.04
+    name: Qt 6.8 LTS Intel (${{ matrix.configuration }})
+    runs-on: macos-13
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -40,20 +40,23 @@ jobs:
         uses: jurplel/install-qt-action@48d3ad6db93f3627c8ee7a0454bc6f3744f7e730 # v4.3.1
         with:
           version: ${{ env.QT_VERSION }}
-          host: linux
+          host: mac
           target: desktop
+          arch: clang_64
           cache: true
 
-      - name: Clone KDE QtScript, apply patches, and build
+      - name: Build isolated QtScript
         shell: bash
         env:
           QSCRIPT_WORK_ROOT: ${{ runner.temp }}/qtscript-work
+          QSCRIPT_INSTALL_PREFIX: ${{ runner.temp }}/qtscript-install
         run: >-
-          ./scripts/build-linux.sh
+          bash ./scripts/build-macos.sh
           --qt-root "$QT_ROOT_DIR"
           --work-root "$QSCRIPT_WORK_ROOT"
+          --install-prefix "$QSCRIPT_INSTALL_PREFIX"
           --configuration ${{ matrix.configuration }}
-          --parallel 4
+          --parallel 3
           --include-ported-tests
 
       - name: Run ported upstream test suites
@@ -64,22 +67,25 @@ jobs:
           QT_QPA_PLATFORM: offscreen
         run: >-
           ctest --test-dir "$QSCRIPT_WORK_ROOT/build"
-          --parallel 4
+          --parallel 3
           --output-on-failure
+
+      - name: Verify installed frameworks
+        if: matrix.configuration == 'Release'
+        shell: bash
+        env:
+          QSCRIPT_INSTALL_PREFIX: ${{ runner.temp }}/qtscript-install
+        run: |
+          otool -L "$QSCRIPT_INSTALL_PREFIX/lib/QtScript.framework/Versions/A/QtScript"
+          otool -L "$QSCRIPT_INSTALL_PREFIX/lib/QtScriptTools.framework/Versions/A/QtScriptTools"
+          ! otool -L "$QSCRIPT_INSTALL_PREFIX/lib/QtScript.framework/Versions/A/QtScript" | grep "$RUNNER_TEMP/qtscript-work"
+          ! otool -L "$QSCRIPT_INSTALL_PREFIX/lib/QtScriptTools.framework/Versions/A/QtScriptTools" | grep "$RUNNER_TEMP/qtscript-work"
 
       - name: Upload QtScript install
         if: matrix.upload
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: qtscript-qt${{ env.QT_VERSION }}-${{ env.QT_ARTIFACT_ID }}-${{ matrix.configuration }}
-          path: |
-            ${{ env.QT_ROOT_DIR }}/lib/libQt6Script.so*
-            ${{ env.QT_ROOT_DIR }}/lib/cmake/Qt6Script/
-            ${{ env.QT_ROOT_DIR }}/include/QtScript/
-            ${{ env.QT_ROOT_DIR }}/mkspecs/modules/qt_lib_script.pri
-            ${{ env.QT_ROOT_DIR }}/lib/libQt6ScriptTools.so*
-            ${{ env.QT_ROOT_DIR }}/lib/cmake/Qt6ScriptTools/
-            ${{ env.QT_ROOT_DIR }}/include/QtScriptTools/
-            ${{ env.QT_ROOT_DIR }}/mkspecs/modules/qt_lib_scripttools.pri
+          path: ${{ runner.temp }}/qtscript-install
           if-no-files-found: error
           retention-days: 3

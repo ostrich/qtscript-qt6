@@ -2,7 +2,7 @@ name: Linux Qt 6.11
 
 on:
   push:
-    branches: [main]
+    branches: [main, qmc2]
     tags: ['v*']
   pull_request:
   workflow_dispatch:
@@ -15,7 +15,7 @@ env:
   QT_ARTIFACT_ID: 'linux-gcc'   # artifact name platform-toolchain segment
 
 concurrency:
-  group: linux-latest-${{ github.ref }}
+  group: linux-latest-${{ github.event.pull_request.head.repo.full_name || github.repository }}-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:

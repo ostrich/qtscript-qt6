@@ -2,7 +2,7 @@ name: Windows Qt 6.8 LTS
 
 on:
   push:
-    branches: [main]
+    branches: [main, qmc2]
     tags: ['v*']
   pull_request:
   workflow_dispatch:
@@ -16,7 +16,7 @@ env:
   QT_ARTIFACT_ID: 'windows-msvc2022' # artifact name platform-toolchain segment
 
 concurrency:
-  group: windows-${{ github.workflow }}-${{ github.ref }}
+  group: windows-lts-${{ github.event.pull_request.head.repo.full_name || github.repository }}-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
