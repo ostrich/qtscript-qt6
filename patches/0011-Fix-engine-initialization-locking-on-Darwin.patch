@@ -1,0 +1,36 @@
+From 881a5e000eefc764015ef978d6dfe6732535ec2c Mon Sep 17 00:00:00 2001
+From: ostrich <570911+ostrich@users.noreply.github.com>
+Date: Fri, 28 Aug 2026 08:42:50 -0400
+Subject: [PATCH] Fix engine initialization locking on Darwin
+
+---
+ src/script/api/qscriptengine.cpp | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/src/script/api/qscriptengine.cpp b/src/script/api/qscriptengine.cpp
+index bb1ad7a..8a95b43 100644
+--- a/src/script/api/qscriptengine.cpp
++++ b/src/script/api/qscriptengine.cpp
+@@ -73,6 +73,7 @@
+ #include "FunctionPrototype.h"
+ #include "TimeoutChecker.h"
+ #include "JSFunction.h"
++#include "JSLock.h"
+ #include "Parser.h"
+ #include "PropertyNameArray.h"
+ #include "Operations.h"
+@@ -992,6 +993,11 @@ QScriptEnginePrivate::QScriptEnginePrivate()
+       registeredScriptStrings(0), processEventsInterval(-1), inEval(false),
+       uncaughtExceptionLineNumber(-1)
+ {
++    // Darwin enables JavaScriptCore's multiple-thread support. Creating the
++    // initial global data and object allocates GC cells before an ExecState is
++    // available, so take the real lock explicitly for engine initialization.
++    JSC::JSLock lock(JSC::LockForReal);
++
+     qMetaTypeId<QScriptValue>();
+     qMetaTypeId<QList<int> >();
+ #ifndef QT_NO_QOBJECT
+-- 
+2.55.0
+

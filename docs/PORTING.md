@@ -61,6 +61,10 @@ default and can be disabled with `-DSCRIPT_QREGEXP=OFF`, which defines
 10. `0010-Support-Darwin-AArch64-GC-thread-registers.patch` teaches the
     conservative JavaScriptCore collector to read stack registers on Apple
     Silicon.
+11. `0011-Fix-engine-initialization-locking-on-Darwin.patch` holds the
+    JavaScriptCore lock while constructing the initial engine state. Darwin
+    enables the engine's multiple-thread support, whose Debug assertions
+    require this lock before the first garbage-collected allocation.
 
 ## Optional test layer
 
