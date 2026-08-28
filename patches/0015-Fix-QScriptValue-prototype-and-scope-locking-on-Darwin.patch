@@ -1,0 +1,40 @@
+From 8817384b114a56cc9b78b6897540e02430c09dc7 Mon Sep 17 00:00:00 2001
+From: ostrich <570911+ostrich@users.noreply.github.com>
+Date: Fri, 28 Aug 2026 09:41:47 -0400
+Subject: [PATCH] Fix QScriptValue prototype and scope locking on Darwin
+
+---
+ src/script/api/qscriptvalue.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/script/api/qscriptvalue.cpp b/src/script/api/qscriptvalue.cpp
+index 4b971b1..1eacab1 100644
+--- a/src/script/api/qscriptvalue.cpp
++++ b/src/script/api/qscriptvalue.cpp
+@@ -532,6 +532,7 @@ QScriptValue QScriptValue::prototype() const
+     Q_D(const QScriptValue);
+     if (!d || !d->isObject())
+         return QScriptValue();
++    QScript::APIShim shim(d->engine);
+     return d->engine->scriptValueFromJSCValue(JSC::asObject(d->jscValue)->prototype());
+ }
+ 
+@@ -552,6 +553,7 @@ void QScriptValue::setPrototype(const QScriptValue &prototype)
+     if (!d || !d->isObject())
+         return;
+ 
++    QScript::APIShim shim(d->engine);
+     JSC::JSValue other = d->engine->scriptValueToJSCValue(prototype);
+     if (!other || !(other.isObject() || other.isNull()))
+         return;
+@@ -615,6 +617,7 @@ void QScriptValue::setScope(const QScriptValue &scope)
+                  "a different engine");
+         return;
+     }
++    QScript::APIShim shim(d->engine);
+     JSC::JSValue other = d->engine->scriptValueToJSCValue(scope);
+     JSC::ExecState *exec = d->engine->currentFrame;
+     JSC::Identifier id = JSC::Identifier(exec, "__qt_scope__");
+-- 
+2.55.0
+

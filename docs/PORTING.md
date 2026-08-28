@@ -74,6 +74,9 @@ default and can be disabled with `-DSCRIPT_QREGEXP=OFF`, which defines
 14. `0014-Fix-QScriptValue-strict-equality-locking-on-Darwin.patch` protects
     the strict-comparison paths that convert an unbound value into a
     JavaScriptCore value before comparison.
+15. `0015-Fix-QScriptValue-prototype-and-scope-locking-on-Darwin.patch`
+    protects prototype reads and writes and internal scope writes, including
+    conversions of primitive values that allocate JavaScriptCore wrappers.
 
 ## Optional test layer
 
