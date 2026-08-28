@@ -65,6 +65,9 @@ default and can be disabled with `-DSCRIPT_QREGEXP=OFF`, which defines
     JavaScriptCore lock while constructing the initial engine state. Darwin
     enables the engine's multiple-thread support, whose Debug assertions
     require this lock before the first garbage-collected allocation.
+12. `0012-Fix-JavaScriptCore-API-entry-locking-on-Darwin.patch` extends the
+    existing API-entry shim with JavaScriptCore's RAII lock, covering engine
+    evaluation and every other public operation that can allocate GC cells.
 
 ## Optional test layer
 

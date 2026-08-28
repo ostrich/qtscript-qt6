@@ -1,0 +1,42 @@
+From 2eb98564c6a37a5bad4b0dd6ca6addf4cc9f5d9c Mon Sep 17 00:00:00 2001
+From: ostrich <570911+ostrich@users.noreply.github.com>
+Date: Fri, 28 Aug 2026 09:01:40 -0400
+Subject: [PATCH] Fix JavaScriptCore API entry locking on Darwin
+
+---
+ src/script/api/qscriptengine_p.h | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/script/api/qscriptengine_p.h b/src/script/api/qscriptengine_p.h
+index 6ff3421..a69a579 100644
+--- a/src/script/api/qscriptengine_p.h
++++ b/src/script/api/qscriptengine_p.h
+@@ -83,6 +83,7 @@
+ #include "Structure.h"
+ #include "UString.h"
+ #include "JSGlobalObject.h"
++#include "JSLock.h"
+ #include "JSValue.h"
+ 
+ #include <stdlib.h>
+@@ -441,7 +442,8 @@ class APIShim
+ {
+ public:
+     APIShim(QScriptEnginePrivate *engine)
+-        : m_engine(engine), m_oldTable(JSC::setCurrentIdentifierTable(engine->globalData->identifierTable))
++        : m_engine(engine), m_lock(engine->currentFrame),
++          m_oldTable(JSC::setCurrentIdentifierTable(engine->globalData->identifierTable))
+     {
+     }
+     ~APIShim()
+@@ -451,6 +453,7 @@ public:
+ 
+ private:
+     QScriptEnginePrivate *m_engine;
++    JSC::JSLock m_lock;
+     JSC::IdentifierTable *m_oldTable;
+ };
+ 
+-- 
+2.55.0
+
