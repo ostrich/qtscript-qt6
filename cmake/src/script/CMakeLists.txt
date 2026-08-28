@@ -287,6 +287,16 @@ qt_internal_add_module(Script
         Qt::CorePrivate
 )
 
+# Prebuilt Qt packages can propagate -Werror through Qt::Platform. Keep the
+# legacy JavaScriptCore warnings visible without making them fatal.
+set_property(TARGET Script PROPERTY QT_SKIP_WARNINGS_ARE_ERRORS ON)
+
+# JavaScriptCore's Darwin clock implementation calls CFAbsoluteTime APIs
+# directly, so QtCore's private transitive linkage is not sufficient.
+if(APPLE)
+    target_link_libraries(Script PRIVATE "-framework CoreFoundation")
+endif()
+
 qt_internal_extend_target(Script CONDITION WIN32
     SOURCES
         "${jsc_dir}/runtime/MarkStackWin.cpp"

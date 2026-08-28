@@ -163,6 +163,8 @@ qt_internal_add_module(ScriptTools
         Qt::ScriptPrivate
 )
 
+set_property(TARGET ScriptTools PROPERTY QT_SKIP_WARNINGS_ARE_ERRORS ON)
+
 qt_add_resources(ScriptTools "scripttools_debugging"
     FILES "debugging/scripttools_debugging.qrc"
 )
