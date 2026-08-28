@@ -1,0 +1,24 @@
+From 5eb0fb7690ffe8625cf0c9d5caf86abd048e6ab2 Mon Sep 17 00:00:00 2001
+From: ostrich <570911+ostrich@users.noreply.github.com>
+Date: Fri, 28 Aug 2026 09:24:32 -0400
+Subject: [PATCH] Fix QScriptValue instanceOf locking on Darwin
+
+---
+ src/script/api/qscriptvalue.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/script/api/qscriptvalue.cpp b/src/script/api/qscriptvalue.cpp
+index 7c37c4d..f972a44 100644
+--- a/src/script/api/qscriptvalue.cpp
++++ b/src/script/api/qscriptvalue.cpp
+@@ -646,6 +646,7 @@ bool QScriptValue::instanceOf(const QScriptValue &other) const
+                  "a different engine");
+         return false;
+     }
++    QScript::APIShim shim(d->engine);
+     JSC::JSValue jscProto = d->engine->scriptValueToJSCValue(other.property(QLatin1String("prototype")));
+     if (!jscProto)
+         jscProto = JSC::jsUndefined();
+-- 
+2.55.0
+

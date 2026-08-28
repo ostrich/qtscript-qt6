@@ -68,6 +68,9 @@ default and can be disabled with `-DSCRIPT_QREGEXP=OFF`, which defines
 12. `0012-Fix-JavaScriptCore-API-entry-locking-on-Darwin.patch` extends the
     existing API-entry shim with JavaScriptCore's RAII lock, covering engine
     evaluation and every other public operation that can allocate GC cells.
+13. `0013-Fix-QScriptValue-instanceOf-locking-on-Darwin.patch` applies that
+    shim to `QScriptValue::instanceOf()`, which enters JavaScriptCore directly
+    and can allocate while resolving a custom class's prototype.
 
 ## Optional test layer
 
