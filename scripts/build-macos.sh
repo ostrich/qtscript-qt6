@@ -79,7 +79,8 @@ otool -L "$script_binary" | grep CoreFoundation >/dev/null ||
 smoke_dir="$work_root/smoke-build"
 cmake -S "$repo_root/tests/smoke" -B "$smoke_dir" -G Ninja \
     "-DCMAKE_BUILD_TYPE=$configuration" \
-    "-DCMAKE_PREFIX_PATH=$install_prefix;$qt_root"
+    "-DCMAKE_PREFIX_PATH=$qt_root" \
+    "-DQt6Script_DIR=$install_prefix/lib/cmake/Qt6Script"
 cmake --build "$smoke_dir" --parallel "$parallel"
 DYLD_FRAMEWORK_PATH="$install_prefix/lib:${DYLD_FRAMEWORK_PATH:-}" \
     ctest --test-dir "$smoke_dir" --output-on-failure
