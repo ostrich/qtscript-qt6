@@ -1,0 +1,50 @@
+From f384c3aac0e8f5bfd910b032a229e6af602dcd49 Mon Sep 17 00:00:00 2001
+From: ostrich <570911+ostrich@users.noreply.github.com>
+Date: Fri, 28 Aug 2026 09:30:20 -0400
+Subject: [PATCH] Fix QScriptValue strict equality locking on Darwin
+
+---
+ src/script/api/qscriptvalue.cpp | 16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
+
+diff --git a/src/script/api/qscriptvalue.cpp b/src/script/api/qscriptvalue.cpp
+index f972a44..4b971b1 100644
+--- a/src/script/api/qscriptvalue.cpp
++++ b/src/script/api/qscriptvalue.cpp
+@@ -924,12 +924,16 @@ bool QScriptValue::strictlyEquals(const QScriptValue &other) const
+     if (d->type != other.d_ptr->type) {
+         if (d->type == QScriptValuePrivate::JavaScriptCore) {
+             QScriptEnginePrivate *eng_p = d->engine ? d->engine : other.d_ptr->engine;
+-            if (eng_p)
++            if (eng_p) {
++                QScript::APIShim shim(eng_p);
+                 return JSC::JSValue::strictEqual(eng_p->currentFrame, d->jscValue, eng_p->scriptValueToJSCValue(other));
++            }
+         } else if (other.d_ptr->type == QScriptValuePrivate::JavaScriptCore) {
+             QScriptEnginePrivate *eng_p = other.d_ptr->engine ? other.d_ptr->engine : d->engine;
+-            if (eng_p)
++            if (eng_p) {
++                QScript::APIShim shim(eng_p);
+                 return JSC::JSValue::strictEqual(eng_p->currentFrame, eng_p->scriptValueToJSCValue(*this), other.d_ptr->jscValue);
++            }
+         }
+ 
+         return false;
+@@ -937,8 +941,12 @@ bool QScriptValue::strictlyEquals(const QScriptValue &other) const
+     switch (d->type) {
+     case QScriptValuePrivate::JavaScriptCore: {
+         QScriptEnginePrivate *eng_p = d->engine ? d->engine : other.d_ptr->engine;
+-        JSC::ExecState *exec = eng_p ? eng_p->currentFrame : 0;
+-        return JSC::JSValue::strictEqual(exec, d->jscValue, other.d_ptr->jscValue);
++        if (eng_p) {
++            QScript::APIShim shim(eng_p);
++            return JSC::JSValue::strictEqual(eng_p->currentFrame, d->jscValue,
++                                             other.d_ptr->jscValue);
++        }
++        return JSC::JSValue::strictEqual(nullptr, d->jscValue, other.d_ptr->jscValue);
+     }
+     case QScriptValuePrivate::Number:
+         return (d->numberValue == other.d_ptr->numberValue);
+-- 
+2.55.0
+

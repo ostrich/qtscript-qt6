@@ -71,6 +71,9 @@ default and can be disabled with `-DSCRIPT_QREGEXP=OFF`, which defines
 13. `0013-Fix-QScriptValue-instanceOf-locking-on-Darwin.patch` applies that
     shim to `QScriptValue::instanceOf()`, which enters JavaScriptCore directly
     and can allocate while resolving a custom class's prototype.
+14. `0014-Fix-QScriptValue-strict-equality-locking-on-Darwin.patch` protects
+    the strict-comparison paths that convert an unbound value into a
+    JavaScriptCore value before comparison.
 
 ## Optional test layer
 
