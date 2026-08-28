@@ -32,7 +32,7 @@ done
     { echo "Specify --qt-root or set QT_ROOT_DIR." >&2; exit 1; }
 [[ "$parallel" =~ ^[0-9]+$ && "$parallel" -ge 1 ]] ||
     { echo "Parallel must be a positive integer." >&2; exit 2; }
-for command in cmake ninja git otool shasum; do
+for command in cmake ninja git lldb otool shasum; do
     command -v "$command" >/dev/null ||
         { echo "$command was not found on PATH." >&2; exit 1; }
 done
@@ -82,7 +82,12 @@ cmake -S "$repo_root/tests/smoke" -B "$smoke_dir" -G Ninja \
     "-DCMAKE_PREFIX_PATH=$qt_root" \
     "-DQt6Script_DIR=$install_prefix/lib/cmake/Qt6Script"
 cmake --build "$smoke_dir" --parallel "$parallel"
-DYLD_FRAMEWORK_PATH="$install_prefix/lib:${DYLD_FRAMEWORK_PATH:-}" \
-    ctest --test-dir "$smoke_dir" --output-on-failure
+if ! DYLD_FRAMEWORK_PATH="$install_prefix/lib:${DYLD_FRAMEWORK_PATH:-}" \
+    ctest --test-dir "$smoke_dir" --output-on-failure; then
+    echo "Smoke test failed; collecting a debugger backtrace." >&2
+    DYLD_FRAMEWORK_PATH="$install_prefix/lib:${DYLD_FRAMEWORK_PATH:-}" \
+        lldb --batch -o run -k 'thread backtrace all' -- "$smoke_dir/qtscript_smoke" || true
+    exit 1
+fi
 
 echo "QtScript $configuration installed into $install_prefix"
