@@ -12,7 +12,8 @@ Core5Compat/Qt5Compat.
 
 The QObject bridge supports the Qt 6.8 and Qt 6.11 `moc` layouts. The
 metaobject code is exercised in CI on the Qt 6.8.3 LTS (Linux GCC, Windows
-MSVC 2022) and Qt 6.11 (Linux GCC, Windows MSVC 2026) legs.
+MSVC 2022, macOS Intel, and macOS Apple Silicon) and Qt 6.11 (Linux GCC,
+Windows MSVC 2026) legs.
 
 The optional test layer is compiled on every CI matrix job and executed via
 `ctest` in a dedicated step on each Debug job. Release jobs compile the suites
