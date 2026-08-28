@@ -55,6 +55,12 @@ default and can be disabled with `-DSCRIPT_QREGEXP=OFF`, which defines
    forward-declared `QStringList` for the Qt 6 alias include, swaps
    `QSet::toList`/`QList::toSet` for range constructors, and replaces the
    removed `QRegExpValidator` with `QRegularExpressionValidator`.
+9. `0009-Remove-obsolete-Darwin-ceil-workaround.patch` removes a workaround
+   for a long-fixed macOS libc bug whose `ceil` macro conflicts with modern
+   libc++ headers.
+10. `0010-Support-Darwin-AArch64-GC-thread-registers.patch` teaches the
+    conservative JavaScriptCore collector to read stack registers on Apple
+    Silicon.
 
 ## Optional test layer
 
@@ -69,5 +75,6 @@ The Qt 6 CMake entry point builds the `Script` module and the `ScriptTools`
 debugger module (`Qt6::ScriptTools`, including the `QScriptEngineDebugger`
 widget and the `scripttools_debugging` resources). It exports `Qt6::Script`
 and `Qt6::ScriptTools`, their public/private headers, and CMake package
-metadata. Examples, documentation, qmake integration, x86, and platforms
-other than Windows and Linux are outside the acceptance scope.
+metadata. Examples, documentation, qmake integration, and 32-bit targets are
+outside the acceptance scope. CI covers Linux x64, Windows x64, macOS x64, and
+macOS arm64.

@@ -1,0 +1,44 @@
+From eab483c1c35d78de1709efa5501f917ef0fb1d2c Mon Sep 17 00:00:00 2001
+From: ostrich <570911+ostrich@users.noreply.github.com>
+Date: Fri, 28 Aug 2026 08:03:50 -0400
+Subject: [PATCH] Support Darwin AArch64 GC thread registers
+
+---
+ .../javascriptcore/JavaScriptCore/runtime/Collector.cpp    | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/src/3rdparty/javascriptcore/JavaScriptCore/runtime/Collector.cpp b/src/3rdparty/javascriptcore/JavaScriptCore/runtime/Collector.cpp
+index e8f78ee..b28e9ad 100644
+--- a/src/3rdparty/javascriptcore/JavaScriptCore/runtime/Collector.cpp
++++ b/src/3rdparty/javascriptcore/JavaScriptCore/runtime/Collector.cpp
+@@ -894,6 +894,8 @@ typedef ppc_thread_state_t PlatformThreadRegisters;
+ typedef ppc_thread_state64_t PlatformThreadRegisters;
+ #elif CPU(ARM)
+ typedef arm_thread_state_t PlatformThreadRegisters;
++#elif CPU(AARCH64)
++typedef arm_thread_state64_t PlatformThreadRegisters;
+ #else
+ #error Unknown Architecture
+ #endif
+@@ -923,6 +925,9 @@ static size_t getPlatformThreadRegisters(const PlatformThread& platformThread, P
+ #elif CPU(ARM)
+     unsigned user_count = ARM_THREAD_STATE_COUNT;
+     thread_state_flavor_t flavor = ARM_THREAD_STATE;
++#elif CPU(AARCH64)
++    unsigned user_count = ARM_THREAD_STATE64_COUNT;
++    thread_state_flavor_t flavor = ARM_THREAD_STATE64;
+ #else
+ #error Unknown Architecture
+ #endif
+@@ -957,7 +962,7 @@ static inline void* otherThreadStackPointer(const PlatformThreadRegisters& regs)
+     return reinterpret_cast<void*>(regs.__rsp);
+ #elif CPU(PPC) || CPU(PPC64)
+     return reinterpret_cast<void*>(regs.__r1);
+-#elif CPU(ARM)
++#elif CPU(ARM) || CPU(AARCH64)
+     return reinterpret_cast<void*>(regs.__sp);
+ #else
+ #error Unknown Architecture
+-- 
+2.55.0
+
