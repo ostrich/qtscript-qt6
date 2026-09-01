@@ -12,7 +12,8 @@ Core5Compat/Qt5Compat.
 
 The QObject bridge supports the Qt 6.8 and Qt 6.11 `moc` layouts. The
 metaobject code is exercised in CI on the Qt 6.8.3 LTS (Linux GCC, Windows
-MSVC 2022) and Qt 6.11 (Linux GCC, Windows MSVC 2026) legs.
+MSVC 2022, macOS Apple Clang) and Qt 6.11 (Linux GCC, Windows MSVC 2026,
+macOS Apple Clang) legs.
 
 The optional test layer is compiled on every CI matrix job and executed via
 `ctest` in a dedicated step on each Debug job. Release jobs compile the suites
@@ -112,6 +113,19 @@ measurement. On Linux:
 work_root="$PWD/.work/6.9.2/Debug"
 ./scripts/build-linux.sh --qt-root "$HOME/Qt/6.9.2/gcc_64" --work-root "$work_root" --configuration Debug --include-ported-tests
 ctest --test-dir "$work_root/build" --output-on-failure
+```
+
+On macOS:
+
+```bash
+work_root="$PWD/.work/6.8.3/Release"
+install_prefix="$work_root/install"
+bash ./scripts/build-macos.sh \
+  --qt-root "$HOME/Qt/6.8.3/macos" \
+  --work-root "$work_root" \
+  --install-prefix "$install_prefix" \
+  --configuration Release \
+  --include-ported-tests
 ```
 
 In CI, every matrix job compiles the suites (`-IncludePortedTests`); each Debug

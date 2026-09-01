@@ -1,0 +1,24 @@
+From 0392684340ebce77cc904d3b3f0dbb4e7aac23d2 Mon Sep 17 00:00:00 2001
+From: ostrich <570911+ostrich@users.noreply.github.com>
+Date: Tue, 1 Sep 2026 14:09:07 -0400
+Subject: [PATCH] Canonicalize script extension search paths
+
+---
+ src/script/api/qscriptengine.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/script/api/qscriptengine.cpp b/src/script/api/qscriptengine.cpp
+index bb1ad7a..18f7183 100644
+--- a/src/script/api/qscriptengine.cpp
++++ b/src/script/api/qscriptengine.cpp
+@@ -3872,6 +3872,7 @@ QStringList QScriptEngine::availableExtensions() const
+         QDir dir(libPath);
+         if (!dir.exists())
+             continue;
++        dir.setPath(dir.canonicalPath());
+ 
+         // look for C++ plugins
+         QFileInfoList files = dir.entryInfoList(QDir::Files);
+-- 
+2.55.0
+

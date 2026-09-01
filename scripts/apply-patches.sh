@@ -98,6 +98,8 @@ if [[ ! -f "$source_dir/CMakeLists.txt" ]]; then
     cp "$repo_root/cmake/src/CMakeLists.txt" "$source_dir/src/"
     cp "$repo_root/cmake/src/script/CMakeLists.txt" "$source_dir/src/script/"
     cp "$repo_root/cmake/src/scripttools/CMakeLists.txt" "$source_dir/src/scripttools/"
+    cp "$repo_root/cmake/src/scripttools/Qt6ScriptToolsMacOSHelpers.cmake" \
+        "$source_dir/src/scripttools/"
     apply_patches "$repo_root/patches"
 fi
 

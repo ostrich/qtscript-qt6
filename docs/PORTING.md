@@ -6,7 +6,7 @@
 - Release branch: `5.15.19`
 
 The repository stores patches, not a snapshot of the upstream sources. The
-Windows and Linux scripts clone the QtScript release, copy the Qt 6 CMake
+Windows, Linux, and macOS scripts clone the QtScript release, copy the Qt 6 CMake
 entry point from `cmake/`, apply the files in `patches/` in lexical order,
 and optionally apply the selected test changes in `patches/optional/tests`
 with `-IncludePortedTests`.
@@ -19,8 +19,8 @@ series.
 
 `cmake/` mirrors the Qt 6 build files at their in-tree paths
 (`CMakeLists.txt`, `.cmake.conf`, `src/CMakeLists.txt`,
-`src/script/CMakeLists.txt`, `src/scripttools/CMakeLists.txt`) and is copied
-verbatim by the apply scripts; it is not a patch. The module never depends on
+`src/script/CMakeLists.txt`, and the files under `src/scripttools`) and is
+copied verbatim by the apply scripts; it is not a patch. The module never depends on
 QtCore5Compat. The legacy `QRegExp` compatibility API is compiled in by
 default and can be disabled with `-DSCRIPT_QREGEXP=OFF`, which defines
 `QT_NO_REGEXP` and drops the `QtScript/QRegExp` header.
@@ -50,6 +50,12 @@ default and can be disabled with `-DSCRIPT_QREGEXP=OFF`, which defines
    forward-declared `QStringList` for the Qt 6 alias include, swaps
    `QSet::toList`/`QList::toSet` for range constructors, and replaces the
    removed `QRegExpValidator` with `QRegularExpressionValidator`.
+9. `0009-Fix-JavaScriptCore-build-with-modern-macOS-libc.patch` removes an
+   obsolete Darwin `ceil` workaround whose global macro rewrites declarations
+   in modern libc++ headers and prevents JavaScriptCore from compiling.
+10. `0010-Canonicalize-script-extension-search-paths.patch` keeps extension
+    discovery relative when macOS resolves a library path through a symlink,
+    such as `/tmp` to `/private/tmp`.
 
 ## Optional test layer
 
@@ -64,5 +70,6 @@ The Qt 6 CMake entry point builds the `Script` module and the `ScriptTools`
 debugger module (`Qt6::ScriptTools`, including the `QScriptEngineDebugger`
 widget and the `scripttools_debugging` resources). It exports `Qt6::Script`
 and `Qt6::ScriptTools`, their public/private headers, and CMake package
-metadata. Examples, documentation, qmake integration, x86, and platforms
-other than Windows and Linux are outside the acceptance scope.
+metadata. Examples, documentation, qmake integration, and platforms other
+than Windows, Linux, and macOS are outside the acceptance scope. The official
+universal macOS Qt packages produce universal QtScript frameworks.

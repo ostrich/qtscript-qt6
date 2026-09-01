@@ -301,6 +301,13 @@ qt_internal_extend_target(Script CONDITION UNIX
         "${jsc_dir}/runtime/MarkStackPosix.cpp"
 )
 
+qt_internal_extend_target(Script CONDITION APPLE
+    DEFINES
+        ENABLE_JSC_MULTIPLE_THREADS=0
+    LIBRARIES
+        "-framework CoreFoundation"
+)
+
 qt_internal_extend_target(Script CONDITION MSVC
     DEFINES
         _CRT_RAND_S
