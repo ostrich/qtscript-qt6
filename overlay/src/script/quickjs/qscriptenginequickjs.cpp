@@ -1198,14 +1198,15 @@ JSValue nativeFunctionThunk(JSContext *context, JSValueConst, int argc,
 
 QString exceptionStack(JSContext *context, JSValueConst exception)
 {
-    JSValue stack = JS_GetPropertyStr(context, exception, "stack");
     QString result;
-    if (JS_IsException(stack)) {
-        discardQuickJSException(context);
-    } else if (!JS_IsUndefined(stack)) {
-        result = qScriptQuickJSString(context, stack);
+    if (JS_IsObject(exception)) {
+        JSValue stack = JS_GetPropertyStr(context, exception, "stack");
+        if (JS_IsException(stack))
+            discardQuickJSException(context);
+        else if (!JS_IsUndefined(stack))
+            result = qScriptQuickJSString(context, stack);
+        JS_FreeValue(context, stack);
     }
-    JS_FreeValue(context, stack);
     JSValue backtrace = JS_GetErrorBacktrace(context);
     if (!JS_IsUndefined(backtrace) && !JS_IsException(backtrace)) {
         const QString captured = qScriptQuickJSString(context, backtrace);
@@ -2732,11 +2733,16 @@ QScriptValue QScriptEngine::evaluate(const QString &program, const QString &file
                 state->exceptionLine = lineNumber;
                 setExceptionLocation(state->context, state->exception, lineNumber, {});
             }
-            JSValue messageValue = JS_GetPropertyStr(state->context, state->exception,
-                                                     "message");
-            const QString message = JS_IsException(messageValue)
-                ? QString() : qScriptQuickJSString(state->context, messageValue);
-            JS_FreeValue(state->context, messageValue);
+            QString message;
+            if (JS_IsObject(state->exception)) {
+                JSValue messageValue = JS_GetPropertyStr(state->context, state->exception,
+                                                         "message");
+                if (!JS_IsException(messageValue))
+                    message = qScriptQuickJSString(state->context, messageValue);
+                else
+                    discardQuickJSException(state->context);
+                JS_FreeValue(state->context, messageValue);
+            }
             if (message == QStringLiteral("invalid assignment left-hand side")
                 && lineNumber > 1 && source.startsWith('\n')) {
                 ++state->exceptionLine;
